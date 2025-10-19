@@ -1,15 +1,191 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
-  output   = "../lib/generated/prisma"
 }
 
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+}
+
+// Main file storage model
+model File {
+  id            String @id @default(cuid())
+  whopCompanyId String // Whop business ID
+  createdBy     String // User ID who uploaded
+
+  // File metadata
+  name          String // Display name
+  description   String? // Optional description
+  originalName  String // Original filename
+  fileName      String  @unique // Stored filename (unique)
+  fileSize      Int // Size in bytes
+  mimeType      String // MIME type
+  fileExtension String // .pdf, .zip, etc.
+
+  // Storage info
+  storageProvider String // "cloudflare_r2"
+  storageKey      String // Path in bucket
+  storageUrl      String? // Public CDN URL (if applicable)
+
+  // Access control
+  isPublic      Boolean   @default(false)
+  requiresPlan  String? // Whop plan_id if gated
+  password      String? // Hashed password for protected links
+  expiresAt     DateTime? // Auto-expire date
+  maxDownloads  Int? // Download limit (null = unlimited)
+  downloadCount Int       @default(0) // Current download count
+
+  // Versioning
+  version           Int     @default(1)
+  previousVersionId String?
+  previousVersion   File?   @relation("FileVersions", fields: [previousVersionId], references: [id], onDelete: SetNull)
+  newerVersions     File[]  @relation("FileVersions")
+
+  // Timestamps
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  lastDownloadAt DateTime? // Last time file was downloaded
+
+  // Relationships
+  downloads Download[]
+  shares    ShareLink[]
+  versions  FileVersion[]
+
+  @@index([whopCompanyId])
+  @@index([createdBy])
+  @@index([fileName])
+  @@index([createdAt])
+}
+
+// Download tracking
+model Download {
+  id     String @id @default(cuid())
+  fileId String
+  file   File   @relation(fields: [fileId], references: [id], onDelete: Cascade)
+
+  // User info
+  whopUserId       String? // Whop user ID (if authenticated)
+  whopMembershipId String? // Membership ID (if applicable)
+  userEmail        String? // Email (for non-auth downloads)
+
+  // Download details
+  ipAddress String?
+  userAgent String?
+  referrer  String?
+  country   String? // Geo data
+  city      String?
+
+  // Download method
+  method      String // "direct", "share_link", "version_update"
+  shareLinkId String?
+  shareLink   ShareLink? @relation(fields: [shareLinkId], references: [id], onDelete: SetNull)
+
+  // Success tracking
+  completed        Boolean @default(false)
+  bytesTransferred Int?
+  downloadDuration Int? // Milliseconds
+
+  createdAt DateTime @default(now())
+
+  @@index([fileId])
+  @@index([whopUserId])
+  @@index([createdAt])
+}
+
+// Shareable links
+model ShareLink {
+  id     String @id @default(cuid())
+  fileId String
+  file   File   @relation(fields: [fileId], references: [id], onDelete: Cascade)
+
+  // Link details
+  slug     String  @unique // Short URL slug
+  password String? // Optional password protection
+
+  // Access control
+  expiresAt DateTime? // Link expiration
+  maxUses   Int? // Use limit (null = unlimited)
+  useCount  Int       @default(0)
+
+  // Tracking
+  requiresEmail Boolean @default(false)
+  notifyCreator Boolean @default(false) // Email creator on download
+
+  // Metadata
+  createdBy  String // User ID
+  createdAt  DateTime  @default(now())
+  lastUsedAt DateTime?
+
+  downloads Download[]
+
+  @@index([slug])
+  @@index([fileId])
+}
+
+// Version history tracking
+model FileVersion {
+  id     String @id @default(cuid())
+  fileId String
+  file   File   @relation(fields: [fileId], references: [id], onDelete: Cascade)
+
+  version    Int
+  changeNote String? // What changed in this version
+
+  // Notification tracking
+  notified      Boolean   @default(false) // Have past downloaders been notified?
+  notifiedAt    DateTime?
+  notifiedCount Int       @default(0) // How many were notified
+
+  createdAt DateTime @default(now())
+  createdBy String
+
+  @@unique([fileId, version])
+  @@index([fileId])
+}
+
+// App settings per company
+model Settings {
+  id            String @id @default(cuid())
+  whopCompanyId String @unique
+
+  // Storage settings
+  maxFileSize      Int      @default(104857600) // 100MB default
+  allowedFileTypes String[] @default(["*"]) // ["pdf", "zip"] or ["*"] for all
+
+  // Branding
+  brandColor   String?
+  logoUrl      String?
+  customDomain String?
+
+  // Notifications
+  emailOnUpload   Boolean @default(false)
+  emailOnDownload Boolean @default(false)
+  webhookUrl      String? // Custom webhook for events
+
+  // Analytics
+  retentionDays Int @default(90) // How long to keep download logs
+
+  updatedAt DateTime @updatedAt
+
+  @@index([whopCompanyId])
+}
+
+// Analytics aggregation (for performance)
+model DailyStats {
+  id            String   @id @default(cuid())
+  whopCompanyId String
+  date          DateTime @db.Date
+
+  // Metrics
+  uploads     Int    @default(0)
+  downloads   Int    @default(0)
+  uniqueUsers Int    @default(0)
+  totalBytes  BigInt @default(0)
+
+  @@unique([whopCompanyId, date])
+  @@index([whopCompanyId])
+  @@index([date])
 }
