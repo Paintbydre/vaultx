@@ -6,6 +6,15 @@ const nextConfig: NextConfig = {
 	images: {
 		remotePatterns: [{ hostname: "**" }],
 	},
+	async redirects() {
+		return [
+			{
+				source: '/',
+				destination: '/dashboard',
+				permanent: false,
+			},
+		]
+	},
 };
 
 export default withWhopAppConfig(nextConfig);
