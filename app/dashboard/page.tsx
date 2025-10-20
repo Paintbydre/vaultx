@@ -1,189 +1,455 @@
-'use client'
+'use client';
 
-import { useEffect, useState } from 'react'
-import { formatFileSize } from '@/lib/file-validation'
+import { useEffect, useState } from 'react';
+import {
+  Upload,
+  Download,
+  Trash2,
+  Share2,
+  Check,
+  File as FileIcon,
+  HardDrive,
+  TrendingUp,
+  Calendar,
+  ExternalLink,
+  Copy,
+  X,
+} from 'lucide-react';
+
+interface FileData {
+  id: string;
+  name: string;
+  description: string | null;
+  fileSize: number;
+  mimeType: string;
+  fileExtension: string;
+  downloadCount: number;
+  createdAt: string;
+  lastDownloadAt: string | null;
+}
 
 interface Analytics {
   overview: {
-    totalFiles: number
-    totalDownloads: number
-    totalStorage: number
-    dateRange: {
-      start: string
-      end: string
-      days: number
-    }
-  }
-  downloadsByDay: Array<{
-    date: string
-    count: number
-  }>
-  topFiles: Array<{
-    id: string
-    name: string
-    downloadCount: number
-    fileSize: number
-    mimeType: string
-  }>
-  recentDownloads: Array<{
-    id: string
-    ipAddress: string | null
-    country: string | null
-    city: string | null
-    createdAt: string
-    file: {
-      name: string
-      fileExtension: string
-    }
-  }>
+    totalFiles: number;
+    totalDownloads: number;
+    totalStorage: number;
+  };
+  topFiles: FileData[];
+  recentDownloads: any[];
 }
 
-export default function DashboardPage() {
-  const [analytics, setAnalytics] = useState<Analytics | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [days, setDays] = useState(30)
+export default function Dashboard() {
+  const [files, setFiles] = useState<FileData[]>([]);
+  const [analytics, setAnalytics] = useState<Analytics | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [uploading, setUploading] = useState(false);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [showUploadModal, setShowUploadModal] = useState(false);
+
+  // Upload form state
+  const [uploadFile, setUploadFile] = useState<File | null>(null);
+  const [uploadName, setUploadName] = useState('');
+  const [uploadDescription, setUploadDescription] = useState('');
 
   useEffect(() => {
-    fetchAnalytics()
-  }, [days])
+    loadData();
+  }, []);
 
-  async function fetchAnalytics() {
-    setLoading(true)
+  const loadData = async () => {
     try {
-      const response = await fetch(`/api/analytics?days=${days}`)
-      const data = await response.json()
+      const [filesRes, analyticsRes] = await Promise.all([
+        fetch('/api/files'),
+        fetch('/api/analytics'),
+      ]);
+
+      const filesData = await filesRes.json();
+      const analyticsData = await analyticsRes.json();
+
+      if (filesData.success) setFiles(filesData.files);
+      if (analyticsData.success) setAnalytics(analyticsData.analytics);
+    } catch (error) {
+      console.error('Error loading data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const formatFileSize = (bytes: number) => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i];
+  };
+
+  const formatDate = (date: string) => {
+    return new Date(date).toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    });
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setUploadFile(file);
+      setUploadName(file.name.replace(/\.[^/.]+$/, '')); // Remove extension
+    }
+  };
+
+  const handleUpload = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!uploadFile) return;
+
+    setUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', uploadFile);
+      formData.append('name', uploadName);
+      formData.append('description', uploadDescription);
+      formData.append('isPublic', 'true');
+
+      const response = await fetch('/api/files', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const data = await response.json();
+
       if (data.success) {
-        setAnalytics(data.analytics)
+        setShowUploadModal(false);
+        setUploadFile(null);
+        setUploadName('');
+        setUploadDescription('');
+        loadData();
+      } else {
+        alert('Upload failed: ' + data.error);
       }
     } catch (error) {
-      console.error('Failed to fetch analytics:', error)
+      console.error('Upload error:', error);
+      alert('Upload failed');
     } finally {
-      setLoading(false)
+      setUploading(false);
     }
-  }
+  };
+
+  const handleGetShareLink = async (fileId: string) => {
+    try {
+      const response = await fetch(`/api/files/${fileId}/share`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({}),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        await navigator.clipboard.writeText(data.shareLink.url);
+        setCopiedId(fileId);
+        setTimeout(() => setCopiedId(null), 2000);
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      alert('Failed to create share link');
+    }
+  };
+
+  const handleDelete = async (fileId: string) => {
+    if (!confirm('Are you sure you want to delete this file?')) return;
+
+    try {
+      const response = await fetch(`/api/files/${fileId}`, {
+        method: 'DELETE',
+      });
+
+      if (response.ok) {
+        loadData();
+      }
+    } catch (error) {
+      console.error('Delete error:', error);
+      alert('Failed to delete file');
+    }
+  };
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-xl">Loading analytics...</div>
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500" />
       </div>
-    )
-  }
-
-  if (!analytics) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-xl text-red-600">Failed to load analytics</div>
-      </div>
-    )
+    );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-8">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-gray-900">VaultX Dashboard</h1>
-          <p className="text-gray-600 mt-2">File hosting & download analytics</p>
-        </div>
-
-        {/* Time Range Selector */}
-        <div className="mb-6">
-          <select
-            value={days}
-            onChange={(e) => setDays(Number(e.target.value))}
-            className="px-4 py-2 border border-gray-300 rounded-lg"
-          >
-            <option value={7}>Last 7 days</option>
-            <option value={30}>Last 30 days</option>
-            <option value={90}>Last 90 days</option>
-          </select>
-        </div>
-
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <StatCard
-            title="Total Files"
-            value={analytics.overview.totalFiles}
-            icon="📁"
-          />
-          <StatCard
-            title="Total Downloads"
-            value={analytics.overview.totalDownloads}
-            icon="⬇️"
-          />
-          <StatCard
-            title="Storage Used"
-            value={formatFileSize(analytics.overview.totalStorage)}
-            icon="💾"
-          />
-        </div>
-
-        {/* Top Files */}
-        <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-          <h2 className="text-2xl font-bold mb-4">Top Downloaded Files</h2>
-          <div className="space-y-4">
-            {analytics.topFiles.map((file) => (
-              <div
-                key={file.id}
-                className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50"
-              >
-                <div>
-                  <div className="font-semibold">{file.name}</div>
-                  <div className="text-sm text-gray-600">
-                    {formatFileSize(file.fileSize)} • {file.mimeType}
-                  </div>
-                </div>
-                <div className="text-2xl font-bold text-blue-600">
-                  {file.downloadCount} downloads
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Recent Downloads */}
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <h2 className="text-2xl font-bold mb-4">Recent Downloads</h2>
-          <div className="space-y-2">
-            {analytics.recentDownloads.map((download) => (
-              <div
-                key={download.id}
-                className="flex items-center justify-between p-3 border-b border-gray-100 last:border-0"
-              >
-                <div>
-                  <div className="font-medium">{download.file.name}</div>
-                  <div className="text-sm text-gray-600">
-                    {download.ipAddress} 
-                    {download.city && ` • ${download.city}`}
-                    {download.country && `, ${download.country}`}
-                  </div>
-                </div>
-                <div className="text-sm text-gray-500">
-                  {new Date(download.createdAt).toLocaleString()}
-                </div>
-              </div>
-            ))}
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+      {/* Header */}
+      <div className="border-b border-gray-700 bg-gray-900/50 backdrop-blur-sm">
+        <div className="container mx-auto px-4 py-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-white mb-2">
+                🔐 VaultX Dashboard
+              </h1>
+              <p className="text-gray-400">
+                File hosting & download analytics
+              </p>
+            </div>
+            <button
+              onClick={() => setShowUploadModal(true)}
+              className="flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition-all hover:scale-105"
+            >
+              <Upload className="w-5 h-5" />
+              Upload File
+            </button>
           </div>
         </div>
       </div>
-    </div>
-  )
-}
 
-function StatCard({ title, value, icon }: { 
-  title: string
-  value: string | number
-  icon: string 
-}) {
-  return (
-    <div className="bg-white rounded-lg shadow-md p-6">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-gray-600 font-medium">{title}</h3>
-        <span className="text-3xl">{icon}</span>
+      <div className="container mx-auto px-4 py-8">
+        {/* Analytics Cards */}
+        {analytics && (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            {/* Total Files */}
+            <div className="bg-gradient-to-br from-blue-900/50 to-blue-800/30 border border-blue-700/50 rounded-xl p-6">
+              <div className="flex items-center justify-between mb-4">
+                <FileIcon className="w-8 h-8 text-blue-400" />
+                <span className="text-3xl font-bold text-white">
+                  {analytics.overview.totalFiles}
+                </span>
+              </div>
+              <p className="text-blue-200 font-medium">Total Files</p>
+            </div>
+
+            {/* Total Downloads */}
+            <div className="bg-gradient-to-br from-green-900/50 to-green-800/30 border border-green-700/50 rounded-xl p-6">
+              <div className="flex items-center justify-between mb-4">
+                <Download className="w-8 h-8 text-green-400" />
+                <span className="text-3xl font-bold text-white">
+                  {analytics.overview.totalDownloads}
+                </span>
+              </div>
+              <p className="text-green-200 font-medium">Total Downloads</p>
+            </div>
+
+            {/* Storage Used */}
+            <div className="bg-gradient-to-br from-purple-900/50 to-purple-800/30 border border-purple-700/50 rounded-xl p-6">
+              <div className="flex items-center justify-between mb-4">
+                <HardDrive className="w-8 h-8 text-purple-400" />
+                <span className="text-3xl font-bold text-white">
+                  {formatFileSize(analytics.overview.totalStorage)}
+                </span>
+              </div>
+              <p className="text-purple-200 font-medium">Storage Used</p>
+            </div>
+          </div>
+        )}
+
+        {/* Files List */}
+        <div className="bg-gray-800 border border-gray-700 rounded-xl overflow-hidden">
+          <div className="p-6 border-b border-gray-700">
+            <h2 className="text-xl font-bold text-white flex items-center gap-2">
+              <FileIcon className="w-6 h-6" />
+              All Files
+            </h2>
+          </div>
+
+          {files.length === 0 ? (
+            <div className="p-12 text-center">
+              <FileIcon className="w-16 h-16 text-gray-600 mx-auto mb-4" />
+              <p className="text-gray-400 text-lg mb-2">No files yet</p>
+              <p className="text-gray-500 text-sm">
+                Upload your first file to get started
+              </p>
+            </div>
+          ) : (
+            <div className="divide-y divide-gray-700">
+              {files.map((file) => (
+                <div
+                  key={file.id}
+                  className="p-6 hover:bg-gray-750 transition-colors"
+                >
+                  <div className="flex items-start justify-between gap-4">
+                    {/* File Info */}
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-lg font-semibold text-white mb-2 truncate">
+                        {file.name}
+                      </h3>
+                      {file.description && (
+                        <p className="text-gray-400 text-sm mb-3">
+                          {file.description}
+                        </p>
+                      )}
+                      <div className="flex flex-wrap gap-4 text-sm">
+                        <span className="flex items-center gap-1 text-gray-400">
+                          <HardDrive className="w-4 h-4" />
+                          {formatFileSize(file.fileSize)}
+                        </span>
+                        <span className="flex items-center gap-1 text-gray-400">
+                          <FileIcon className="w-4 h-4" />
+                          {file.fileExtension?.toUpperCase() || 'FILE'}
+                        </span>
+                        <span className="flex items-center gap-1 text-gray-400">
+                          <Download className="w-4 h-4" />
+                          {file.downloadCount} downloads
+                        </span>
+                        <span className="flex items-center gap-1 text-gray-400">
+                          <Calendar className="w-4 h-4" />
+                          {formatDate(file.createdAt)}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Actions */}
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => handleGetShareLink(file.id)}
+                        className="p-2 text-blue-400 hover:text-blue-300 hover:bg-gray-700 rounded-lg transition-colors"
+                        title="Get Share Link"
+                      >
+                        {copiedId === file.id ? (
+                          <Check className="w-5 h-5 text-green-400" />
+                        ) : (
+                          <Share2 className="w-5 h-5" />
+                        )}
+                      </button>
+                      <button
+                        onClick={() => handleDelete(file.id)}
+                        className="p-2 text-red-400 hover:text-red-300 hover:bg-gray-700 rounded-lg transition-colors"
+                        title="Delete File"
+                      >
+                        <Trash2 className="w-5 h-5" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Top Downloaded Files */}
+        {analytics && analytics.topFiles.length > 0 && (
+          <div className="mt-8 bg-gray-800 border border-gray-700 rounded-xl overflow-hidden">
+            <div className="p-6 border-b border-gray-700">
+              <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                <TrendingUp className="w-6 h-6" />
+                Top Downloaded Files
+              </h2>
+            </div>
+            <div className="divide-y divide-gray-700">
+              {analytics.topFiles.map((file, index) => (
+                <div key={file.id} className="p-6 flex items-center gap-4">
+                  <div className="flex-shrink-0 w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold">
+                    {index + 1}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-white font-medium truncate">
+                      {file.name}
+                    </p>
+                    <p className="text-gray-400 text-sm">
+                      {formatFileSize(file.fileSize)} •{' '}
+                      {file.fileExtension?.toUpperCase() || 'FILE'}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-white font-semibold">
+                      {file.downloadCount}
+                    </p>
+                    <p className="text-gray-400 text-sm">downloads</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
-      <div className="text-3xl font-bold text-gray-900">{value}</div>
+
+      {/* Upload Modal */}
+      {showUploadModal && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <div className="bg-gray-800 border border-gray-700 rounded-xl max-w-lg w-full">
+            <div className="p-6 border-b border-gray-700 flex items-center justify-between">
+              <h3 className="text-xl font-bold text-white">Upload File</h3>
+              <button
+                onClick={() => setShowUploadModal(false)}
+                className="text-gray-400 hover:text-white transition-colors"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+
+            <form onSubmit={handleUpload} className="p-6 space-y-4">
+              {/* File Input */}
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  Select File
+                </label>
+                <input
+                  type="file"
+                  onChange={handleFileSelect}
+                  required
+                  className="w-full text-gray-300 bg-gray-900 border border-gray-700 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                {uploadFile && (
+                  <p className="mt-2 text-sm text-gray-400">
+                    {formatFileSize(uploadFile.size)} •{' '}
+                    {uploadFile.type || 'Unknown type'}
+                  </p>
+                )}
+              </div>
+
+              {/* Name Input */}
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  File Name
+                </label>
+                <input
+                  type="text"
+                  value={uploadName}
+                  onChange={(e) => setUploadName(e.target.value)}
+                  required
+                  placeholder="Enter file name"
+                  className="w-full text-white bg-gray-900 border border-gray-700 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+
+              {/* Description Input */}
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  Description (optional)
+                </label>
+                <textarea
+                  value={uploadDescription}
+                  onChange={(e) => setUploadDescription(e.target.value)}
+                  placeholder="Enter file description"
+                  rows={3}
+                  className="w-full text-white bg-gray-900 border border-gray-700 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                />
+              </div>
+
+              {/* Submit Button */}
+              <button
+                type="submit"
+                disabled={uploading || !uploadFile}
+                className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              >
+                {uploading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white" />
+                    Uploading...
+                  </>
+                ) : (
+                  <>
+                    <Upload className="w-5 h-5" />
+                    Upload File
+                  </>
+                )}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
-  )
+  );
 }
 
