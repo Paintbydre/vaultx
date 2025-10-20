@@ -57,18 +57,43 @@ export default function Dashboard() {
 
   const loadData = async () => {
     try {
+      console.log('Loading dashboard data...');
       const [filesRes, analyticsRes] = await Promise.all([
         fetch('/api/files'),
         fetch('/api/analytics'),
       ]);
 
+      console.log('Files response:', filesRes.status);
+      console.log('Analytics response:', analyticsRes.status);
+
       const filesData = await filesRes.json();
       const analyticsData = await analyticsRes.json();
 
+      console.log('Files data:', filesData);
+      console.log('Analytics data:', analyticsData);
+
       if (filesData.success) setFiles(filesData.files);
       if (analyticsData.success) setAnalytics(analyticsData.analytics);
+      
+      // If API calls fail, set empty data to show the interface
+      if (!filesData.success || !analyticsData.success) {
+        console.warn('API calls failed, showing empty state');
+        setFiles([]);
+        setAnalytics({
+          overview: { totalFiles: 0, totalDownloads: 0, totalStorage: 0 },
+          topFiles: [],
+          recentDownloads: []
+        });
+      }
     } catch (error) {
       console.error('Error loading data:', error);
+      // Set empty data to show the interface even if API fails
+      setFiles([]);
+      setAnalytics({
+        overview: { totalFiles: 0, totalDownloads: 0, totalStorage: 0 },
+        topFiles: [],
+        recentDownloads: []
+      });
     } finally {
       setLoading(false);
     }
@@ -175,7 +200,10 @@ export default function Dashboard() {
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500" />
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4" />
+          <p className="text-white">Loading VaultX Dashboard...</p>
+        </div>
       </div>
     );
   }
