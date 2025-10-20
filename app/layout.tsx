@@ -14,8 +14,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-	title: "Whop App",
-	description: "My Whop App",
+	title: "VaultX - Secure File Delivery",
+	description: "Professional file hosting and download tracking platform",
 };
 
 export default function RootLayout({
@@ -23,12 +23,15 @@ export default function RootLayout({
 }: Readonly<{
 	children: React.ReactNode;
 }>) {
+	// Only use WhopApp if appId is available
+	const hasWhopConfig = process.env.NEXT_PUBLIC_WHOP_APP_ID;
+
 	return (
 		<html lang="en" suppressHydrationWarning>
 			<body
 				className={`${geistSans.variable} ${geistMono.variable} antialiased`}
 			>
-				<WhopApp>{children}</WhopApp>
+				{hasWhopConfig ? <WhopApp>{children}</WhopApp> : children}
 			</body>
 		</html>
 	);
