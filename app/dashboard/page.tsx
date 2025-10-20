@@ -11,8 +11,6 @@ import {
   HardDrive,
   TrendingUp,
   Calendar,
-  ExternalLink,
-  Copy,
   X,
 } from 'lucide-react';
 
@@ -42,6 +40,7 @@ export default function Dashboard() {
   const [files, setFiles] = useState<FileData[]>([]);
   const [analytics, setAnalytics] = useState<Analytics | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [showUploadModal, setShowUploadModal] = useState(false);
@@ -66,8 +65,34 @@ export default function Dashboard() {
       console.log('Files response:', filesRes.status);
       console.log('Analytics response:', analyticsRes.status);
 
-      const filesData = await filesRes.json();
-      const analyticsData = await analyticsRes.json();
+      if (filesRes.status === 401 || analyticsRes.status === 401) {
+        console.warn('Unauthorized access, redirecting to login');
+        setIsAuthenticated(false);
+        setFiles([]);
+        setAnalytics({
+          overview: { totalFiles: 0, totalDownloads: 0, totalStorage: 0 },
+          topFiles: [],
+          recentDownloads: []
+        });
+        return;
+      }
+
+      let filesData;
+      let analyticsData;
+
+      if (!filesRes.ok) {
+        console.warn('Files API failed with status:', filesRes.status);
+        filesData = { success: false };
+      } else {
+        filesData = await filesRes.json();
+      }
+
+      if (!analyticsRes.ok) {
+        console.warn('Analytics API failed with status:', analyticsRes.status);
+        analyticsData = { success: false };
+      } else {
+        analyticsData = await analyticsRes.json();
+      }
 
       console.log('Files data:', filesData);
       console.log('Analytics data:', analyticsData);
@@ -75,7 +100,7 @@ export default function Dashboard() {
       if (filesData.success) setFiles(filesData.files);
       if (analyticsData.success) setAnalytics(analyticsData.analytics);
       
-      // If API calls fail, set empty data to show the interface
+      // If API calls fail (but not auth), show empty state
       if (!filesData.success || !analyticsData.success) {
         console.warn('API calls failed, showing empty state');
         setFiles([]);
@@ -104,7 +129,7 @@ export default function Dashboard() {
     const k = 1024;
     const sizes = ['Bytes', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i];
+    return (bytes / Math.pow(k, i)).toFixed(2) + ' ' + sizes[i];
   };
 
   const formatDate = (date: string) => {
@@ -140,6 +165,10 @@ export default function Dashboard() {
         body: formData,
       });
 
+      if (!response.ok) {
+        throw new Error(`Upload failed with status: ${response.status}`);
+      }
+
       const data = await response.json();
 
       if (data.success) {
@@ -163,9 +192,11 @@ export default function Dashboard() {
     try {
       const response = await fetch(`/api/files/${fileId}/share`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({}),
       });
+
+      if (!response.ok) {
+        throw new Error(`Share link failed with status: ${response.status}`);
+      }
 
       const data = await response.json();
 
@@ -190,6 +221,8 @@ export default function Dashboard() {
 
       if (response.ok) {
         loadData();
+      } else {
+        throw new Error(`Delete failed with status: ${response.status}`);
       }
     } catch (error) {
       console.error('Delete error:', error);
@@ -203,6 +236,23 @@ export default function Dashboard() {
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4" />
           <p className="text-white">Loading VaultX Dashboard...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center">
+        <div className="text-center p-8 bg-gray-800 border border-gray-700 rounded-xl max-w-md w-full">
+          <h1 className="text-3xl font-bold text-white mb-4">🔐 VaultX</h1>
+          <p className="text-gray-400 mb-6">Please log in with your Whop account to access the dashboard.</p>
+          <button
+            onClick={() => window.location.href = '/api/oauth/init?next=/'}
+            className="flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition-all hover:scale-105"
+          >
+            Login with Whop
+          </button>
         </div>
       </div>
     );
