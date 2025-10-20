@@ -1,6 +1,6 @@
-import { WhopApp } from "@whop/react/components";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { WhopProvider } from "@/components/WhopProvider";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -23,15 +23,12 @@ export default function RootLayout({
 }: Readonly<{
 	children: React.ReactNode;
 }>) {
-	// Only use WhopApp if appId is available
-	const hasWhopConfig = process.env.NEXT_PUBLIC_WHOP_APP_ID;
-
 	return (
 		<html lang="en" suppressHydrationWarning>
 			<body
 				className={`${geistSans.variable} ${geistMono.variable} antialiased`}
 			>
-				{hasWhopConfig ? <WhopApp>{children}</WhopApp> : children}
+				<WhopProvider>{children}</WhopProvider>
 			</body>
 		</html>
 	);
