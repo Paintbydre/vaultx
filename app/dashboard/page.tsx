@@ -49,6 +49,7 @@ export default function Dashboard() {
   const [uploadFile, setUploadFile] = useState<File | null>(null);
   const [uploadName, setUploadName] = useState('');
   const [uploadDescription, setUploadDescription] = useState('');
+  const [isDragging, setIsDragging] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -142,6 +143,26 @@ export default function Dashboard() {
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
+    if (file) {
+      setUploadFile(file);
+      setUploadName(file.name.replace(/\.[^/.]+$/, '')); // Remove extension
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    const file = e.dataTransfer.files?.[0];
     if (file) {
       setUploadFile(file);
       setUploadName(file.name.replace(/\.[^/.]+$/, '')); // Remove extension
@@ -459,27 +480,41 @@ export default function Dashboard() {
               </button>
             </div>
 
-            <form onSubmit={handleUpload} className="p-4 sm:p-6 space-y-4 sm:space-y-6">
-              {/* File Input */}
-              <div>
-                <label className="block text-sm font-medium text-gray-100 mb-2">
-                  Select File to Upload
-                </label>
-                <div className="relative">
-                  <input
-                    type="file"
-                    onChange={handleFileSelect}
-                    required
-                    className="w-full text-gray-100 bg-gray-900/70 border border-gray-500 rounded-lg p-3 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors text-xs sm:text-sm cursor-pointer"
-                  />
-                  <Upload className="absolute right-3 top-3 w-5 h-5 text-gray-400 pointer-events-none" />
+            <div
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
+              className={`relative p-4 sm:p-6 space-y-4 sm:space-y-6 transition-all ${
+                isDragging ? 'border-2 border-dashed border-blue-500 bg-blue-900/20' : 'border-2 border-transparent'
+              }`}
+            >
+              {isDragging && (
+                <div className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-lg pointer-events-none">
+                  <p className="text-white text-lg font-medium">Drop file here</p>
                 </div>
-                {uploadFile && (
-                  <p className="mt-2 text-xs sm:text-sm text-gray-300">
-                    Selected: {uploadFile.name} ({formatFileSize(uploadFile.size)}) •{' '}
-                    {uploadFile.type || 'Unknown type'}
-                  </p>
-                )}
+              )}
+              <form onSubmit={handleUpload} className="space-y-4 sm:space-y-6 relative z-10">
+                {/* File Input */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-100 mb-2">
+                    Select File to Upload
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="file"
+                      onChange={handleFileSelect}
+                      required
+                      className="w-full text-gray-100 bg-gray-900/70 border border-gray-500 rounded-lg p-3 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors text-xs sm:text-sm cursor-pointer"
+                    />
+                    <Upload className="absolute right-3 top-3 w-5 h-5 text-gray-400 pointer-events-none" />
+                  </div>
+                  <p className="mt-2 text-xs text-gray-400">or drag and drop a file here</p>
+                  {uploadFile && (
+                    <p className="mt-2 text-xs sm:text-sm text-gray-300">
+                      Selected: {uploadFile.name} ({formatFileSize(uploadFile.size)}) •{' '}
+                      {uploadFile.type || 'Unknown type'}
+                    </p>
+                  )}
               </div>
 
               {/* Name Input */}
@@ -529,7 +564,8 @@ export default function Dashboard() {
                   </>
                 )}
               </button>
-            </form>
+              </form>
+            </div>
           </div>
         </div>
       )}
