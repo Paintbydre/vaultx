@@ -274,10 +274,10 @@ export default function Dashboard() {
             </div>
             <button
               onClick={() => setShowUploadModal(true)}
-              className="flex items-center gap-2 px-4 py-2 sm:px-6 sm:py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-semibold transition-all shadow-md hover:shadow-lg hover:scale-105 w-full sm:w-auto justify-center sm:justify-start"
+              className="flex items-center gap-2 px-4 py-2 sm:px-6 sm:py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition-all shadow-md hover:shadow-lg hover:scale-105 w-full sm:w-auto justify-center sm:justify-start"
             >
               <Upload className="w-4 h-4 sm:w-5 sm:h-5" />
-              Upload File
+              Upload New File
             </button>
           </div>
         </div>
@@ -346,7 +346,7 @@ export default function Dashboard() {
                   key={file.id}
                   className="p-4 sm:p-6 hover:bg-gray-700/50 transition-colors"
                 >
-                  <div className="flex flex-col sm:flex-row items-start sm:items-start justify-between gap-4">
+                  <div className="flex flex-col sm:flex-row items-start justify-between gap-4">
                     {/* File Info */}
                     <div className="flex-1 min-w-0">
                       <h3 className="text-base sm:text-lg font-semibold text-white mb-2 truncate">
@@ -447,8 +447,8 @@ export default function Dashboard() {
       {/* Upload Modal */}
       {showUploadModal && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50 overflow-y-auto">
-          <div className="bg-gray-800/90 backdrop-blur-md border border-gray-700 rounded-xl max-w-md w-full shadow-2xl mx-2 sm:mx-0">
-            <div className="p-4 sm:p-6 border-b border-gray-700 flex items-center justify-between">
+          <div className="bg-gray-800/90 backdrop-blur-md border border-gray-600 rounded-xl max-w-md w-full shadow-2xl mx-2 sm:mx-0">
+            <div className="p-4 sm:p-6 border-b border-gray-600 flex items-center justify-between">
               <h3 className="text-lg sm:text-xl font-bold text-white">Upload File</h3>
               <button
                 onClick={() => setShowUploadModal(false)}
@@ -462,18 +462,21 @@ export default function Dashboard() {
             <form onSubmit={handleUpload} className="p-4 sm:p-6 space-y-4 sm:space-y-6">
               {/* File Input */}
               <div>
-                <label className="block text-sm font-medium text-gray-200 mb-2">
-                  Select File
+                <label className="block text-sm font-medium text-gray-100 mb-2">
+                  Select File to Upload
                 </label>
-                <input
-                  type="file"
-                  onChange={handleFileSelect}
-                  required
-                  className="w-full text-gray-200 bg-gray-900/50 border border-gray-600 rounded-lg p-3 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-500 file:text-white hover:file:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors text-xs sm:text-sm"
-                />
+                <div className="relative">
+                  <input
+                    type="file"
+                    onChange={handleFileSelect}
+                    required
+                    className="w-full text-gray-100 bg-gray-900/70 border border-gray-500 rounded-lg p-3 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors text-xs sm:text-sm cursor-pointer"
+                  />
+                  <Upload className="absolute right-3 top-3 w-5 h-5 text-gray-400 pointer-events-none" />
+                </div>
                 {uploadFile && (
                   <p className="mt-2 text-xs sm:text-sm text-gray-300">
-                    {formatFileSize(uploadFile.size)} •{' '}
+                    Selected: {uploadFile.name} ({formatFileSize(uploadFile.size)}) •{' '}
                     {uploadFile.type || 'Unknown type'}
                   </p>
                 )}
@@ -481,7 +484,7 @@ export default function Dashboard() {
 
               {/* Name Input */}
               <div>
-                <label className="block text-sm font-medium text-gray-200 mb-2">
+                <label className="block text-sm font-medium text-gray-100 mb-2">
                   File Name
                 </label>
                 <input
@@ -489,22 +492,22 @@ export default function Dashboard() {
                   value={uploadName}
                   onChange={(e) => setUploadName(e.target.value)}
                   required
-                  placeholder="Enter file name"
-                  className="w-full text-white bg-gray-900/50 border border-gray-600 rounded-lg p-3 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-shadow text-sm"
+                  placeholder="Enter a name for your file"
+                  className="w-full text-white bg-gray-900/70 border border-gray-500 rounded-lg p-3 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-shadow text-sm"
                 />
               </div>
 
               {/* Description Input */}
               <div>
-                <label className="block text-sm font-medium text-gray-200 mb-2">
+                <label className="block text-sm font-medium text-gray-100 mb-2">
                   Description (optional)
                 </label>
                 <textarea
                   value={uploadDescription}
                   onChange={(e) => setUploadDescription(e.target.value)}
-                  placeholder="Enter file description"
+                  placeholder="Add a description for your file"
                   rows={3}
-                  className="w-full text-white bg-gray-900/50 border border-gray-600 rounded-lg p-3 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none transition-shadow text-sm"
+                  className="w-full text-white bg-gray-900/70 border border-gray-500 rounded-lg p-3 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none transition-shadow text-sm"
                 />
               </div>
 
@@ -512,7 +515,7 @@ export default function Dashboard() {
               <button
                 type="submit"
                 disabled={uploading || !uploadFile}
-                className="w-full py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-semibold transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-sm sm:text-base"
+                className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-sm sm:text-base"
               >
                 {uploading ? (
                   <>
