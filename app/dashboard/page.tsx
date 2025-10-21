@@ -232,10 +232,10 @@ export default function Dashboard() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center px-4">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-400 mx-auto mb-4" />
-          <p className="text-white text-lg font-medium">Loading VaultX Dashboard...</p>
+          <p className="text-white text-base sm:text-lg font-medium">Loading VaultX Dashboard...</p>
         </div>
       </div>
     );
@@ -243,13 +243,13 @@ export default function Dashboard() {
 
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center">
-        <div className="text-center p-8 bg-gray-800/80 backdrop-blur-md border border-gray-700 rounded-xl shadow-xl max-w-md w-full">
-          <h1 className="text-3xl font-bold text-white mb-4">🔐 VaultX</h1>
-          <p className="text-gray-300 mb-6">Please log in with your Whop account to access the dashboard.</p>
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center px-4">
+        <div className="text-center p-6 sm:p-8 bg-gray-800/80 backdrop-blur-md border border-gray-700 rounded-xl shadow-xl max-w-md w-full">
+          <h1 className="text-2xl sm:text-3xl font-bold text-white mb-4">🔐 VaultX</h1>
+          <p className="text-gray-300 mb-6 text-sm sm:text-base">Please log in with your Whop account to access the dashboard.</p>
           <button
             onClick={() => window.location.href = '/api/oauth/init?next=/'}
-            className="flex items-center justify-center gap-2 px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-semibold transition-all shadow-md hover:shadow-lg hover:scale-105"
+            className="flex items-center justify-center gap-2 px-4 py-2 sm:px-6 sm:py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-semibold transition-all shadow-md hover:shadow-lg hover:scale-105 text-sm sm:text-base"
           >
             Login with Whop
           </button>
@@ -262,80 +262,80 @@ export default function Dashboard() {
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-gray-100">
       {/* Header */}
       <div className="border-b border-gray-700 bg-gray-900/70 backdrop-blur-md shadow-md">
-        <div className="container mx-auto px-4 py-6">
-          <div className="flex items-center justify-between">
+        <div className="container mx-auto px-4 py-4 sm:py-6">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 sm:gap-0">
             <div>
-              <h1 className="text-3xl font-bold text-white mb-1 flex items-center gap-2">
+              <h1 className="text-2xl sm:text-3xl font-bold text-white mb-1 flex items-center gap-2">
                 🔐 VaultX Dashboard
               </h1>
-              <p className="text-gray-300 text-sm">
+              <p className="text-gray-300 text-xs sm:text-sm">
                 Secure file hosting & download analytics
               </p>
             </div>
             <button
               onClick={() => setShowUploadModal(true)}
-              className="flex items-center gap-2 px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-semibold transition-all shadow-md hover:shadow-lg hover:scale-105"
+              className="flex items-center gap-2 px-4 py-2 sm:px-6 sm:py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-semibold transition-all shadow-md hover:shadow-lg hover:scale-105 w-full sm:w-auto justify-center sm:justify-start"
             >
-              <Upload className="w-5 h-5" />
+              <Upload className="w-4 h-4 sm:w-5 sm:h-5" />
               Upload File
             </button>
           </div>
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-6 sm:py-8">
         {/* Analytics Cards */}
         {analytics && (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
             {/* Total Files */}
-            <div className="bg-gradient-to-br from-blue-900/70 to-blue-800/50 border border-blue-700/30 rounded-xl p-6 shadow-md hover:shadow-lg transition-shadow">
+            <div className="bg-gradient-to-br from-blue-900/70 to-blue-800/50 border border-blue-700/30 rounded-xl p-4 sm:p-6 shadow-md hover:shadow-lg transition-shadow">
               <div className="flex items-center justify-between mb-4">
-                <FileIcon className="w-8 h-8 text-blue-300" />
-                <span className="text-3xl font-bold text-white">
+                <FileIcon className="w-6 h-6 sm:w-8 sm:h-8 text-blue-300" />
+                <span className="text-2xl sm:text-3xl font-bold text-white">
                   {analytics.overview.totalFiles}
                 </span>
               </div>
-              <p className="text-blue-100 font-medium">Total Files</p>
+              <p className="text-blue-100 font-medium text-sm sm:text-base">Total Files</p>
             </div>
 
             {/* Total Downloads */}
-            <div className="bg-gradient-to-br from-green-900/70 to-green-800/50 border border-green-700/30 rounded-xl p-6 shadow-md hover:shadow-lg transition-shadow">
+            <div className="bg-gradient-to-br from-green-900/70 to-green-800/50 border border-green-700/30 rounded-xl p-4 sm:p-6 shadow-md hover:shadow-lg transition-shadow">
               <div className="flex items-center justify-between mb-4">
-                <Download className="w-8 h-8 text-green-300" />
-                <span className="text-3xl font-bold text-white">
+                <Download className="w-6 h-6 sm:w-8 sm:h-8 text-green-300" />
+                <span className="text-2xl sm:text-3xl font-bold text-white">
                   {analytics.overview.totalDownloads}
                 </span>
               </div>
-              <p className="text-green-100 font-medium">Total Downloads</p>
+              <p className="text-green-100 font-medium text-sm sm:text-base">Total Downloads</p>
             </div>
 
             {/* Storage Used */}
-            <div className="bg-gradient-to-br from-purple-900/70 to-purple-800/50 border border-purple-700/30 rounded-xl p-6 shadow-md hover:shadow-lg transition-shadow">
+            <div className="bg-gradient-to-br from-purple-900/70 to-purple-800/50 border border-purple-700/30 rounded-xl p-4 sm:p-6 shadow-md hover:shadow-lg transition-shadow">
               <div className="flex items-center justify-between mb-4">
-                <HardDrive className="w-8 h-8 text-purple-300" />
-                <span className="text-3xl font-bold text-white">
+                <HardDrive className="w-6 h-6 sm:w-8 sm:h-8 text-purple-300" />
+                <span className="text-2xl sm:text-3xl font-bold text-white">
                   {formatFileSize(analytics.overview.totalStorage)}
                 </span>
               </div>
-              <p className="text-purple-100 font-medium">Storage Used</p>
+              <p className="text-purple-100 font-medium text-sm sm:text-base">Storage Used</p>
             </div>
           </div>
         )}
 
         {/* Files List */}
         <div className="bg-gray-800/80 backdrop-blur-md border border-gray-700 rounded-xl overflow-hidden shadow-md">
-          <div className="p-6 border-b border-gray-700">
-            <h2 className="text-xl font-bold text-white flex items-center gap-2">
-              <FileIcon className="w-6 h-6 text-gray-300" />
+          <div className="p-4 sm:p-6 border-b border-gray-700">
+            <h2 className="text-lg sm:text-xl font-bold text-white flex items-center gap-2">
+              <FileIcon className="w-5 h-5 sm:w-6 sm:h-6 text-gray-300" />
               All Files
             </h2>
           </div>
 
           {files.length === 0 ? (
-            <div className="p-12 text-center">
-              <FileIcon className="w-16 h-16 text-gray-500 mx-auto mb-4" />
-              <p className="text-gray-200 text-lg font-medium mb-2">No files yet</p>
-              <p className="text-gray-400 text-sm">
+            <div className="p-8 sm:p-12 text-center">
+              <FileIcon className="w-12 h-12 sm:w-16 sm:h-16 text-gray-500 mx-auto mb-4" />
+              <p className="text-gray-200 text-base sm:text-lg font-medium mb-2">No files yet</p>
+              <p className="text-gray-400 text-xs sm:text-sm">
                 Upload your first file to get started
               </p>
             </div>
@@ -344,60 +344,60 @@ export default function Dashboard() {
               {files.map((file) => (
                 <div
                   key={file.id}
-                  className="p-6 hover:bg-gray-700/50 transition-colors"
+                  className="p-4 sm:p-6 hover:bg-gray-700/50 transition-colors"
                 >
-                  <div className="flex items-start justify-between gap-4">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-start justify-between gap-4">
                     {/* File Info */}
                     <div className="flex-1 min-w-0">
-                      <h3 className="text-lg font-semibold text-white mb-2 truncate">
+                      <h3 className="text-base sm:text-lg font-semibold text-white mb-2 truncate">
                         {file.name}
                       </h3>
                       {file.description && (
-                        <p className="text-gray-300 text-sm mb-3">
+                        <p className="text-gray-300 text-xs sm:text-sm mb-3">
                           {file.description}
                         </p>
                       )}
-                      <div className="flex flex-wrap gap-4 text-sm text-gray-400">
+                      <div className="flex flex-wrap gap-3 sm:gap-4 text-xs sm:text-sm text-gray-400">
                         <span className="flex items-center gap-1">
-                          <HardDrive className="w-4 h-4" />
+                          <HardDrive className="w-3 h-3 sm:w-4 sm:h-4" />
                           {formatFileSize(file.fileSize)}
                         </span>
                         <span className="flex items-center gap-1">
-                          <FileIcon className="w-4 h-4" />
+                          <FileIcon className="w-3 h-3 sm:w-4 sm:h-4" />
                           {file.fileExtension?.toUpperCase() || 'FILE'}
                         </span>
                         <span className="flex items-center gap-1">
-                          <Download className="w-4 h-4" />
+                          <Download className="w-3 h-3 sm:w-4 sm:h-4" />
                           {file.downloadCount} downloads
                         </span>
                         <span className="flex items-center gap-1">
-                          <Calendar className="w-4 h-4" />
+                          <Calendar className="w-3 h-3 sm:w-4 sm:h-4" />
                           {formatDate(file.createdAt)}
                         </span>
                       </div>
                     </div>
 
                     {/* Actions */}
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 self-end sm:self-auto">
                       <button
                         onClick={() => handleGetShareLink(file.id)}
-                        className="p-2 text-blue-400 hover:text-blue-300 hover:bg-gray-700/50 rounded-lg transition-colors"
+                        className="p-1 sm:p-2 text-blue-400 hover:text-blue-300 hover:bg-gray-700/50 rounded-lg transition-colors"
                         title="Get Share Link"
                         aria-label="Get Share Link"
                       >
                         {copiedId === file.id ? (
-                          <Check className="w-5 h-5 text-green-400" />
+                          <Check className="w-4 h-4 sm:w-5 sm:h-5 text-green-400" />
                         ) : (
-                          <Share2 className="w-5 h-5" />
+                          <Share2 className="w-4 h-4 sm:w-5 sm:h-5" />
                         )}
                       </button>
                       <button
                         onClick={() => handleDelete(file.id)}
-                        className="p-2 text-red-400 hover:text-red-300 hover:bg-gray-700/50 rounded-lg transition-colors"
+                        className="p-1 sm:p-2 text-red-400 hover:text-red-300 hover:bg-gray-700/50 rounded-lg transition-colors"
                         title="Delete File"
                         aria-label="Delete File"
                       >
-                        <Trash2 className="w-5 h-5" />
+                        <Trash2 className="w-4 h-4 sm:w-5 sm:h-5" />
                       </button>
                     </div>
                   </div>
@@ -409,33 +409,33 @@ export default function Dashboard() {
 
         {/* Top Downloaded Files */}
         {analytics && analytics.topFiles.length > 0 && (
-          <div className="mt-8 bg-gray-800/80 backdrop-blur-md border border-gray-700 rounded-xl overflow-hidden shadow-md">
-            <div className="p-6 border-b border-gray-700">
-              <h2 className="text-xl font-bold text-white flex items-center gap-2">
-                <TrendingUp className="w-6 h-6 text-gray-300" />
+          <div className="mt-6 sm:mt-8 bg-gray-800/80 backdrop-blur-md border border-gray-700 rounded-xl overflow-hidden shadow-md">
+            <div className="p-4 sm:p-6 border-b border-gray-700">
+              <h2 className="text-lg sm:text-xl font-bold text-white flex items-center gap-2">
+                <TrendingUp className="w-5 h-5 sm:w-6 sm:h-6 text-gray-300" />
                 Top Downloaded Files
               </h2>
             </div>
             <div className="divide-y divide-gray-700">
               {analytics.topFiles.map((file, index) => (
-                <div key={file.id} className="p-6 flex items-center gap-4 hover:bg-gray-700/50 transition-colors">
-                  <div className="flex-shrink-0 w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold">
+                <div key={file.id} className="p-4 sm:p-6 flex items-center gap-3 sm:gap-4 hover:bg-gray-700/50 transition-colors">
+                  <div className="flex-shrink-0 w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold text-xs sm:text-base">
                     {index + 1}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-white font-medium truncate">
+                    <p className="text-white font-medium truncate text-sm sm:text-base">
                       {file.name}
                     </p>
-                    <p className="text-gray-400 text-sm">
+                    <p className="text-gray-400 text-xs sm:text-sm">
                       {formatFileSize(file.fileSize)} •{' '}
                       {file.fileExtension?.toUpperCase() || 'FILE'}
                     </p>
                   </div>
                   <div className="text-right">
-                    <p className="text-white font-semibold">
+                    <p className="text-white font-semibold text-sm sm:text-base">
                       {file.downloadCount}
                     </p>
-                    <p className="text-gray-400 text-sm">downloads</p>
+                    <p className="text-gray-400 text-xs sm:text-sm">downloads</p>
                   </div>
                 </div>
               ))}
@@ -446,20 +446,20 @@ export default function Dashboard() {
 
       {/* Upload Modal */}
       {showUploadModal && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-gray-800/90 backdrop-blur-md border border-gray-700 rounded-xl max-w-lg w-full shadow-2xl">
-            <div className="p-6 border-b border-gray-700 flex items-center justify-between">
-              <h3 className="text-xl font-bold text-white">Upload File</h3>
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50 overflow-y-auto">
+          <div className="bg-gray-800/90 backdrop-blur-md border border-gray-700 rounded-xl max-w-md w-full shadow-2xl mx-2 sm:mx-0">
+            <div className="p-4 sm:p-6 border-b border-gray-700 flex items-center justify-between">
+              <h3 className="text-lg sm:text-xl font-bold text-white">Upload File</h3>
               <button
                 onClick={() => setShowUploadModal(false)}
                 className="text-gray-300 hover:text-white transition-colors"
                 aria-label="Close Upload Modal"
               >
-                <X className="w-6 h-6" />
+                <X className="w-5 h-5 sm:w-6 sm:h-6" />
               </button>
             </div>
 
-            <form onSubmit={handleUpload} className="p-6 space-y-6">
+            <form onSubmit={handleUpload} className="p-4 sm:p-6 space-y-4 sm:space-y-6">
               {/* File Input */}
               <div>
                 <label className="block text-sm font-medium text-gray-200 mb-2">
@@ -469,10 +469,10 @@ export default function Dashboard() {
                   type="file"
                   onChange={handleFileSelect}
                   required
-                  className="w-full text-gray-200 bg-gray-900/50 border border-gray-600 rounded-lg p-3 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-500 file:text-white hover:file:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
+                  className="w-full text-gray-200 bg-gray-900/50 border border-gray-600 rounded-lg p-3 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-500 file:text-white hover:file:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors text-xs sm:text-sm"
                 />
                 {uploadFile && (
-                  <p className="mt-2 text-sm text-gray-300">
+                  <p className="mt-2 text-xs sm:text-sm text-gray-300">
                     {formatFileSize(uploadFile.size)} •{' '}
                     {uploadFile.type || 'Unknown type'}
                   </p>
@@ -490,7 +490,7 @@ export default function Dashboard() {
                   onChange={(e) => setUploadName(e.target.value)}
                   required
                   placeholder="Enter file name"
-                  className="w-full text-white bg-gray-900/50 border border-gray-600 rounded-lg p-3 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-shadow"
+                  className="w-full text-white bg-gray-900/50 border border-gray-600 rounded-lg p-3 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-shadow text-sm"
                 />
               </div>
 
@@ -504,7 +504,7 @@ export default function Dashboard() {
                   onChange={(e) => setUploadDescription(e.target.value)}
                   placeholder="Enter file description"
                   rows={3}
-                  className="w-full text-white bg-gray-900/50 border border-gray-600 rounded-lg p-3 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none transition-shadow"
+                  className="w-full text-white bg-gray-900/50 border border-gray-600 rounded-lg p-3 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none transition-shadow text-sm"
                 />
               </div>
 
@@ -512,16 +512,16 @@ export default function Dashboard() {
               <button
                 type="submit"
                 disabled={uploading || !uploadFile}
-                className="w-full py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-semibold transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                className="w-full py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-semibold transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-sm sm:text-base"
               >
                 {uploading ? (
                   <>
-                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white" />
+                    <div className="animate-spin rounded-full h-4 w-4 sm:h-5 sm:w-5 border-b-2 border-white" />
                     Uploading...
                   </>
                 ) : (
                   <>
-                    <Upload className="w-5 h-5" />
+                    <Upload className="w-4 h-4 sm:w-5 sm:h-5" />
                     Upload File
                   </>
                 )}
